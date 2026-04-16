@@ -1,0 +1,65 @@
+extends: ["spectral:oas"]
+
+functions:
+  - checkProfile
+  - checkUnused
+
+
+rules:
+
+  # Turn off default OpenAPI warnings that don't apply to this MVP
+  info-contact: off
+  operation-description: off
+  operation-tags: off
+  oas3-operation-security-defined: off
+
+
+  # Rule 0: Schema Validation (Tying in the previous step)
+  gnap-schema-validation:
+    description: "The x-gnap-access-profiles catalog must perfectly match our strict JSON Schema."
+    given: "$.components.securitySchemes.GNAP.x-gnap-access-profiles"
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          $ref: "./gnap-profile.schema.json"
+
+  # Rule 1: Single Profile Per Entry
+  gnap-single-profile-per-entry:
+    description: "A GNAP security requirement array must reference exactly ONE profile (maxItems: 1)."
+    given: "$..security[*].GNAP"
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          maxItems: 1
+
+  # Rule 2: Profile Reference Exists
+  gnap-profile-reference-exists:
+    description: "Operations cannot request GNAP profiles that do not exist in the catalog."
+    given: "$..security[*].GNAP[*]"
+    severity: error
+    then:
+      function: checkProfile
+
+  # Rule 3: Declared But Unused
+  gnap-profile-declared-but-unused:
+    description: "Warns if a GNAP profile is taking up space in the catalog but never used."
+    given: "$.components.securitySchemes.GNAP.x-gnap-access-profiles"
+    severity: warn
+    then:
+      function: checkUnused
+
+  # Rule 4: Slot Integrity Safety Net
+  gnap-slot-integrity:
+    description: "A typed slot MUST contain exactly both $slot and schemaRef. Typos are not allowed."
+    given: "$..['x-gnap-access-profiles']..[?(@.schemaRef || @.$slot)]"
+    severity: error
+    then:
+      - field: "$slot"
+        function: truthy
+      - field: "schemaRef"
+        function: truthy

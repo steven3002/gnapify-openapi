@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GNAP Access Profiles Catalog",
+  "type": "object",
+  "patternProperties": {
+    "^[a-zA-Z0-9_-]+$": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/gnapAccessObject" }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "gnapAccessObject": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string" },
+        "actions": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": { "$ref": "#/definitions/gnapValueNode" }
+    },
+    "gnapValueNode": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "$ref": "#/definitions/typedSlotPlaceholder" },
+        {
+          "type": "object",
+          "allOf": [
+            { "not": { "required": ["$slot"] } },
+            { "not": { "required": ["schemaRef"] } }
+          ],
+          "additionalProperties": { "$ref": "#/definitions/gnapValueNode" }
+        },
+        {
+          "type": "array",
+          "items": { "$ref": "#/definitions/gnapValueNode" }
+        }
+      ]
+    },
+    "typedSlotPlaceholder": {
+      "type": "object",
+      "required": ["$slot", "schemaRef"],
+      "properties": {
+        "$slot": { "type": "string" },
+        "schemaRef": { "type": "string" },
+        "required": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,145 @@
+openapi: 3.1.0
+info:
+  title: Open Payments GNAP Access Profiles
+  version: 1.0.0
+  description: An OpenAPI 3.1.0 document demonstrating the x-gnap-access-profiles extension for structured GNAP authorization.
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+
+servers:
+  - url: https://wallet.api.openpayments.dev
+    description: Open Payments Resource Server
+
+paths:
+  /incoming-payments:
+    post:
+      operationId: createIncomingPayment
+      summary: Create an Incoming Payment
+      responses:
+        '201':
+          description: Incoming Payment Created
+        '401':
+          description: Unauthorized - Valid GNAP grant required
+      security:
+        - GNAP: ["thisProfileDoesNotExist"]
+    
+    get:
+      operationId: readAllIncomingPayments
+      summary: List all Incoming Payments
+      responses:
+        '200':
+          description: A list of incoming payments
+        '401':
+          description: Unauthorized - Valid GNAP grant required
+      security:
+        - GNAP: ["incomingPaymentReadAll"]
+
+  /quotes:
+    post:
+      operationId: createQuote
+      summary: Create a Quote
+      responses:
+        '201':
+          description: Quote Created
+        '401':
+          description: Unauthorized - Valid GNAP grant required
+      security:
+        - GNAP: ["quoteCreate"]
+
+  /outgoing-payments:
+    post:
+      operationId: createOutgoingPayment
+      summary: Create an Outgoing Payment
+      requestBody:
+        description: Outgoing payment details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddress:
+                  $ref: "#/components/schemas/WalletAddress"
+                receiver:
+                  $ref: "#/components/schemas/ReceiverUri"
+                debitAmount:
+                  $ref: "#/components/schemas/PaymentAmount"
+      responses:
+        '201':
+          description: Outgoing Payment Created
+        '401':
+          description: Unauthorized - Valid GNAP grant required
+      security:
+        - GNAP: ["outgoingPaymentCreateFixedDebit"]
+
+components:
+  securitySchemes:
+    GNAP:
+      type: http
+      scheme: GNAP
+      description: Grant Negotiation and Authorization Protocol
+      
+      x-gnap-access-profiles:
+        
+        # Static Profile: Incoming Payment (Create)
+        incomingPaymentCreate:
+          - type: "incoming-payment"
+            actions: 
+              - "create"
+              
+        # Static Profile: Incoming Payment (Read All)
+        incomingPaymentReadAll:
+          - type: "incoming-payment"
+            actions: 
+              - "read-all"
+              
+        # Static Profile: Quote (Create)
+        quoteCreate:
+          - type: "quote"
+            actions: 
+              - "create"
+              
+        # Dynamic Profile: Outgoing Payment (Create Fixed Debit)
+        outgoingPaymentCreateFixedDebit:
+          - type: "outgoing-payment"
+            actions: 
+              - "create"
+            identifier:
+              $slot: "identifier"
+              schemaRef: "#/components/schemas/WalletAddress"
+            limits:
+              receiver:
+                $slot: "limits.receiver"
+                schemaRef: "#/components/schemas/ReceiverUri"
+              debitAmount:
+                $slot: "limits.debitAmount"
+                schemaRef: "#/components/schemas/PaymentAmount"
+
+  schemas:
+    WalletAddress:
+      type: string
+      format: uri
+      description: The URL identifier of the wallet address.
+    
+    ReceiverUri:
+      type: string
+      format: uri
+      description: The URL of the incoming payment being paid.
+      
+    PaymentAmount:
+      type: object
+      required:
+        - value
+        - assetCode
+        - assetScale
+      properties:
+        value:
+          type: string
+          description: The actual payment amount as a string.
+        assetCode:
+          type: string
+          description: The 3-letter currency code (e.g., USD).
+        assetScale:
+          type: integer
+          description: The scale of the asset.
