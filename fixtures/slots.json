@@ -1,0 +1,9 @@
+{
+  "identifier": "https://wallet.example.com/alice",
+  "limits.receiver": "https://wallet.example.com/bob/incoming-payments/8b92b6a5-7eb8-4b72-8854-4a460980c986",
+  "limits.debitAmount": {
+    "value": "5000",
+    "assetCode": "USD",
+    "assetScale": 2
+  }
+}
