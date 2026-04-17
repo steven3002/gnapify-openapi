@@ -1,0 +1,8 @@
+[
+  {
+    "actions": [
+      "read-all"
+    ],
+    "type": "incoming-payment"
+  }
+]
