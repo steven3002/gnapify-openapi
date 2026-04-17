@@ -1,0 +1,9 @@
+{
+  "identifier": 12345, 
+  "limits.debitAmount": {
+    "value": "5000",
+    "assetCode": "USD",
+    "assetScale": 2
+  },
+  "limits.receiver": "https://wallet.example.com/bob"
+}

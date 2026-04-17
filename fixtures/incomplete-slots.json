@@ -1,0 +1,8 @@
+{
+  "identifier": "https://wallet.example.com/alice",
+  "limits.debitAmount": {
+    "value": "5000",
+    "assetCode": "USD",
+    "assetScale": 2
+  }
+}

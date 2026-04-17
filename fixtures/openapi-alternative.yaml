@@ -1,0 +1,32 @@
+openapi: 3.1.0
+info:
+  title: Open Payments GNAP Alternative Grants
+  version: 1.0.0
+  
+paths:
+  /alternative-grant:
+    post:
+      operationId: alternativeGrantExample
+      responses:
+        '201':
+          description: Success
+      security:
+        - GNAP: ["profileA_requires_slot"]   # The CLI will try this first, and fail.
+        - GNAP: ["profileB_static"]          # The CLI will try this second, and succeed!
+
+components:
+  securitySchemes:
+    GNAP:
+      type: http
+      scheme: GNAP
+      x-gnap-access-profiles:
+        profileA_requires_slot:
+          - type: "custom-access"
+            actions: ["read"]
+            identifier:
+              $slot: "missing_slot"
+              schemaRef: "#/components/schemas/String"
+              required: true
+        profileB_static:
+          - type: "custom-access"
+            actions: ["write"]
